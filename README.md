@@ -125,9 +125,18 @@ El backend acepta solicitudes CORS provenientes de
 `http://localhost:5173`. Si cambias el puerto del frontend, actualiza también
 el origen permitido en `backend/server.js`.
 
-Actualmente el backend solo tiene definida la ruta `GET /`. Las rutas de la
-API que se agreguen posteriormente deben registrarse en `backend/server.js` y
-podrán consumirse desde el frontend usando rutas como `/api/...`.
+El backend incluye las rutas de autenticación siguientes:
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/api/auth/registro` | Crea una cuenta con nombre, correo y contraseña. |
+| `POST` | `/api/auth/login` | Valida las credenciales y devuelve los datos públicos del usuario. |
+
+El frontend presenta estas pantallas en `/login` y `/registro`; Vite reenvía
+las peticiones `/api` a `http://localhost:3000`. Las cuentas se guardan en
+`backend/data/usuarios.json` y las contraseñas se almacenan como hashes, nunca
+en texto plano. La página principal y las demás funciones del proyecto quedan
+fuera de este módulo para que se integren por separado.
 
 ## Comandos disponibles
 
