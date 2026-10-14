@@ -4,7 +4,7 @@ import '../css/AuthPage.css'
 
 const initialForm = { nombre: '', email: '', contrasena: '', confirmarContrasena: '' }
 
-function AuthPage() {
+function AuthPage({ onLogin }) {
   const navigate = useNavigate()
   const location = useLocation()
   const isRegistration = location.pathname === '/registro'
@@ -52,11 +52,17 @@ function AuthPage() {
       if (isRegistration) {
         navigate('/login', {
           replace: true,
-          state: { message: 'Tu cuenta se creó correctamente. Ya puedes iniciar sesión.' },
+          state: {
+            message: 'Tu cuenta se creó correctamente. Ya puedes iniciar sesión.',
+            from: location.state?.from,
+          },
         })
       } else {
-        setMessage(`Inicio de sesión exitoso. ¡Hola, ${result.usuario.nombre}!`)
-        setForm(initialForm)
+        onLogin({ token: result.token, usuario: result.usuario })
+        navigate(location.state?.from || '/', {
+          replace: true,
+          state: { message: `¡Hola, ${result.usuario.nombre}!` },
+        })
       }
     } catch (requestError) {
       setError(
@@ -185,7 +191,10 @@ function AuthPage() {
 
           <p className="auth-switch">
             {isRegistration ? '¿Ya tienes una cuenta?' : '¿Aún no tienes una cuenta?'}{' '}
-            <Link to={isRegistration ? '/login' : '/registro'}>
+            <Link
+              state={location.state}
+              to={isRegistration ? '/login' : '/registro'}
+            >
               {isRegistration ? 'Inicia sesión' : 'Regístrate'}
             </Link>
           </p>

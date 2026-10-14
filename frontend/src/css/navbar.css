@@ -42,10 +42,24 @@
     gap: 10px;
 }
 
+.welcome-user {
+    max-width: 180px;
+    overflow: hidden;
+    color: var(--color-heading);
+    font-size: var(--text-small);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .register-button {
     color: var(--color-primary);
     border-color: var(--color-primary);
     background: transparent;
+}
+
+.auth-actions .register-button {
+    cursor: pointer;
+    font-weight: 700;
 }
 
 .register-button:hover {
@@ -95,6 +109,12 @@
 
     .auth-actions {
         gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .welcome-user {
+        display: none;
     }
 }
 

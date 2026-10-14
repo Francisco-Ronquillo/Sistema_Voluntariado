@@ -123,6 +123,12 @@
     letter-spacing: -1.6px;
 }
 
+.steps-description {
+    max-width: 610px;
+    margin: 16px auto 24px;
+    line-height: 1.7;
+}
+
 /* =========================
    TABLETS
 ========================= */

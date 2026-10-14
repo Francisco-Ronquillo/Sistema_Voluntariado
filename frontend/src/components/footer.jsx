@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import "../css/footer.css"
 
 function Footer() {
@@ -6,7 +7,7 @@ function Footer() {
     <footer className="site-footer">
       <div className="container footer-content">
         <div className="footer-brand">
-          <a className="brand" href="/" aria-label="Sumamos, inicio">
+          <Link className="brand" to="/" aria-label="Sumamos, inicio">
             <span className="brand-icon">
               <svg
                 className="icon"
@@ -22,15 +23,15 @@ function Footer() {
             </span>
 
             <span className="brand-name">Sumamos</span>
-          </a>
+          </Link>
 
           <p>Pequeñas acciones. Grandes cambios.</p>
         </div>
 
         <nav className="footer-nav" aria-label="Enlaces del pie de página">
-          <a href="/#participar">Participar</a>
-          <a href="/#actividades">Actividades</a>
-          <a href="/inscripciones">Inscripciones</a>
+          <Link to="/actividades">Participar</Link>
+          <Link to="/actividades">Actividades</Link>
+          <Link to="/inscripciones">Inscripciones</Link>
           <a href="mailto:contacto@ejemplo.com">Contacto</a>
         </nav>
 

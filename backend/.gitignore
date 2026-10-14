@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 data/usuarios.json
+data/inscripciones.json
 
 # Archivos sensibles y credenciales
 .env

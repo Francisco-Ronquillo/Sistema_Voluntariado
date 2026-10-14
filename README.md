@@ -69,8 +69,12 @@ npm run dev
 El backend quedará disponible en:
 
 ```text
-http://localhost:3000
+http://localhost:3001
 ```
+
+Para usar otro puerto, define la variable de entorno `PORT` antes de iniciar
+el servidor y actualiza el proxy de `frontend/vite.config.js` para que apunte
+al mismo puerto.
 
 El comando `npm run dev` usa Nodemon y reinicia el servidor automáticamente
 cuando detecta cambios en los archivos.
@@ -100,16 +104,16 @@ Abre esa dirección en el navegador.
 ## Comprobar que el backend funciona
 
 Con el backend iniciado, visita
-[http://localhost:3000](http://localhost:3000) o ejecuta:
+[http://localhost:3001](http://localhost:3001) o ejecuta:
 
 ```powershell
-Invoke-WebRequest http://localhost:3000
+Invoke-WebRequest http://localhost:3001
 ```
 
 La respuesta esperada es:
 
 ```text
-Hello World!
+API de Voluntariado
 ```
 
 ## Configuración de comunicación frontend-backend
@@ -118,7 +122,7 @@ El frontend de Vite tiene configurado un proxy para las rutas que comienzan
 con `/api`:
 
 ```text
-/api -> http://localhost:3000
+/api -> http://localhost:3001
 ```
 
 El backend acepta solicitudes CORS provenientes de
@@ -132,11 +136,30 @@ El backend incluye las rutas de autenticación siguientes:
 | `POST` | `/api/auth/registro` | Crea una cuenta con nombre, correo y contraseña. |
 | `POST` | `/api/auth/login` | Valida las credenciales y devuelve los datos públicos del usuario. |
 
-El frontend presenta estas pantallas en `/login` y `/registro`; Vite reenvía
-las peticiones `/api` a `http://localhost:3000`. Las cuentas se guardan en
+El frontend presenta las pantallas `/login` y `/registro`; Vite reenvía las
+peticiones `/api` a `http://localhost:3001`. Las cuentas se guardan en
 `backend/data/usuarios.json` y las contraseñas se almacenan como hashes, nunca
-en texto plano. La página principal y las demás funciones del proyecto quedan
-fuera de este módulo para que se integren por separado.
+en texto plano. Al iniciar sesión, la API entrega un token temporal que permite
+gestionar las inscripciones del usuario.
+
+## Actividades e inscripciones
+
+En `/actividades` se muestran las actividades disponibles, sus fechas, lugares
+y cupos. Para reservar un cupo, el voluntario debe iniciar sesión. En
+`/inscripciones` puede consultar sus reservas y cancelar cualquiera de ellas.
+El backend guarda las inscripciones en `backend/data/inscripciones.json`;
+ambos archivos de datos se crean automáticamente al iniciar el servidor.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/api/actividades` | Lista actividades con cupos disponibles. |
+| `POST` | `/api/inscripciones` | Inscribe al usuario autenticado en una actividad. |
+| `GET` | `/api/inscripciones` | Consulta las inscripciones del usuario autenticado. |
+| `DELETE` | `/api/inscripciones/:id` | Cancela una inscripción propia. |
+
+Las actividades de ejemplo están definidas en `backend/server.js`. Los cupos
+se validan en el servidor para evitar sobreinscripciones y registros
+duplicados.
 
 ## Comandos disponibles
 

@@ -1,4 +1,5 @@
 import "../css/home.css";
+import { Link } from "react-router-dom";
 
 function Home() {
   return (
@@ -42,8 +43,8 @@ function Home() {
               </p>
 
               <div className="hero-actions">
-                <a
-                  href="#actividades"
+                <Link
+                  to="/actividades"
                   className="button button-primary"
                 >
                   Explorar actividades
@@ -55,14 +56,14 @@ function Home() {
                   >
                     <path d="M5 12h14m-5-5 5 5-5 5" />
                   </svg>
-                </a>
+                </Link>
 
-                <a
-                  href="inscripciones.html"
+                <Link
+                  to="/inscripciones"
                   className="button button-outline"
                 >
                   Ver inscripciones
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -95,6 +96,13 @@ function Home() {
             <h2 id="steps-title">
               Elige, inscríbete y empieza a sumar
             </h2>
+            <p className="steps-description">
+              Explora las actividades disponibles, reserva tu cupo y consulta
+              tus inscripciones cuando quieras.
+            </p>
+            <Link className="button button-primary" to="/actividades">
+              Ver actividades disponibles
+            </Link>
           </div>
         </section>
       </main>
