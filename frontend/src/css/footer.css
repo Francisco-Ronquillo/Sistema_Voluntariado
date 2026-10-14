@@ -1,0 +1,84 @@
+/* =========================
+   PIE DE PÁGINA
+========================= */
+
+.site-footer {
+    padding-block: 37px;
+    background: var(--color-white);
+    border-top: 1px solid var(--color-border);
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-lg);
+}
+
+.footer-brand p {
+    margin-top: 10px;
+    font-size: var(--text-small);
+    color: var(--color-muted);
+}
+
+.footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 26px;
+    font-size: var(--text-small);
+}
+
+.footer-nav a {
+    transition: color var(--transition);
+}
+
+.footer-nav a:hover {
+    color: var(--color-primary);
+}
+
+.copyright {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+/* =========================
+   TABLETS
+========================= */
+
+@media (max-width: 1024px) {
+    .footer-content {
+        flex-wrap: wrap;
+    }
+
+    .footer-nav {
+        gap: 20px;
+    }
+}
+
+/* =========================
+   CELULARES
+========================= */
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 28px;
+    }
+
+    .footer-brand .brand {
+        justify-content: center;
+    }
+}
+
+/* =========================
+   MOVIMIENTO REDUCIDO
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .footer-nav a {
+        transition: none;
+    }
+}
