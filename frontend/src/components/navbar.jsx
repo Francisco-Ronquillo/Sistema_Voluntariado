@@ -1,4 +1,4 @@
-
+import {Link} from "react-router-dom";
 import "../css/navbar.css";
 function Navbar() {
     return (
@@ -31,7 +31,7 @@ function Navbar() {
 
             <nav className="main-nav" aria-label="Navegación principal">
                 <a
-                href="#inicio"
+                href="/"
                 className="nav-link active"
                 aria-current="page"
                 >
@@ -45,16 +45,13 @@ function Navbar() {
                 <a href="#participar" className="nav-link">
                 Quiero participar
                 </a>
-
-                <a href="inscripciones.html" className="nav-link">
-                Inscripciones
-                </a>
             </nav>
 
-            <a
-                href="login.html"
+            <div className="auth-actions">
+                <Link
+                to="/login"
                 className="button button-primary login-button"
-            >
+                >
                 <svg
                 className="icon"
                 viewBox="0 0 24 24"
@@ -63,9 +60,24 @@ function Navbar() {
                 <circle cx="12" cy="8" r="3.5" />
                 <path d="M5 20v-2a7 7 0 0 1 14 0v2" />
                 </svg>
-
                 Iniciar sesión
-            </a>
+                </Link>
+                <Link
+                to="/registro"
+                className="button register-button"
+                >
+                <svg
+                className="icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                >
+                <circle cx="9" cy="8" r="3.5" />
+                <path d="M2 20v-2a7 7 0 0 1 14 0v2" />
+                <path d="M19 8v6M16 11h6" />
+                </svg>
+                Registrarse
+                </Link>
+            </div>
             </div>
         </header>
         
