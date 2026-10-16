@@ -129,37 +129,35 @@ El backend acepta solicitudes CORS provenientes de
 `http://localhost:5173`. Si cambias el puerto del frontend, actualiza también
 el origen permitido en `backend/server.js`.
 
-El backend incluye las rutas de autenticación siguientes:
-
-| Método | Ruta | Descripción |
-| --- | --- | --- |
-| `POST` | `/api/auth/registro` | Crea una cuenta con nombre, correo y contraseña. |
-| `POST` | `/api/auth/login` | Valida las credenciales y devuelve los datos públicos del usuario. |
-
-El frontend presenta las pantallas `/login` y `/registro`; Vite reenvía las
-peticiones `/api` a `http://localhost:3001`. Las cuentas se guardan en
-`backend/data/usuarios.json` y las contraseñas se almacenan como hashes, nunca
-en texto plano. Al iniciar sesión, la API entrega un token temporal que permite
-gestionar las inscripciones del usuario.
+El frontend no requiere inicio de sesión ni registro. En `/registro`, cada
+voluntario proporciona su nombre, correo, actividad y motivación. Se crea un
+identificador anónimo aleatorio en el navegador para consultar y cancelar las
+inscripciones desde ese mismo navegador; si se borran los datos del navegador,
+se pierde el acceso a esas inscripciones.
 
 ## Actividades e inscripciones
 
-En `/actividades` se muestran las actividades disponibles, sus fechas, lugares
-y cupos. Para reservar un cupo, el voluntario debe iniciar sesión. En
-`/inscripciones` puede consultar sus reservas y cancelar cualquiera de ellas.
-El backend guarda las inscripciones en `backend/data/inscripciones.json`;
-ambos archivos de datos se crean automáticamente al iniciar el servidor.
+En `/actividades` se muestran las cuatro actividades de ejemplo, sus categorías,
+fechas, lugares y cupos. Cualquier visitante puede reservar un cupo sin crear
+una cuenta. El formulario `/registro` permite elegir la actividad y añadir una
+motivación. En `/lista` se muestran y se pueden buscar los tres registros de
+ejemplo de la comunidad; las inscripciones reales permanecen privadas. Al
+confirmar una reserva, el formulario muestra el resultado y permite volver a
+las actividades. El backend guarda las inscripciones en
+`backend/data/inscripciones.json`, creado automáticamente al iniciar el servidor.
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | `GET` | `/api/actividades` | Lista actividades con cupos disponibles. |
-| `POST` | `/api/inscripciones` | Inscribe al usuario autenticado en una actividad. |
-| `GET` | `/api/inscripciones` | Consulta las inscripciones del usuario autenticado. |
-| `DELETE` | `/api/inscripciones/:id` | Cancela una inscripción propia. |
+| `GET` | `/api/registros` | Lista los registros de ejemplo públicos de la comunidad, sin datos de contacto. |
+| `POST` | `/api/inscripciones` | Crea una inscripción con nombre, correo, motivación e identificador anónimo. |
+| `GET` | `/api/inscripciones` | Consulta las inscripciones del navegador identificado, incluida la motivación. |
+| `DELETE` | `/api/inscripciones/:id` | Cancela una inscripción del navegador identificado. |
 
-Las actividades de ejemplo están definidas en `backend/server.js`. Los cupos
-se validan en el servidor para evitar sobreinscripciones y registros
-duplicados.
+Las cuatro actividades y los registros de demostración están definidos en
+`backend/server.js`. Los cupos se validan en el servidor para evitar
+sobreinscripciones y registros duplicados. Las consultas y cancelaciones
+envían el identificador anónimo en la cabecera `X-Visitor-Id`.
 
 ## Comandos disponibles
 

@@ -1,17 +1,56 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { promisify } = require('node:util');
 const cors = require('cors');
 const express = require('express');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3001);
-const USERS_FILE = path.join(__dirname, 'data', 'usuarios.json');
 const ENROLLMENTS_FILE = path.join(__dirname, 'data', 'inscripciones.json');
-const scrypt = promisify(crypto.scrypt);
-const SESSION_DURATION = 12 * 60 * 60 * 1000;
+const VISITOR_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ACTIVITIES = [
+  {
+    id: 'ACT-001',
+    nombre: 'Reforestación del Parque Central',
+    categoria: 'Medio ambiente',
+    descripcion: 'Siembra de árboles nativos y recuperación de las zonas verdes del parque.',
+    fecha: '2027-04-18',
+    hora: '09:00',
+    lugar: 'Parque Central',
+    cupo: 24,
+  },
+  {
+    id: 'ACT-002',
+    nombre: 'Apoyo en comedor comunitario',
+    categoria: 'Ayuda social',
+    descripcion: 'Preparación y entrega de alimentos para familias de la comunidad.',
+    fecha: '2027-04-22',
+    hora: '08:00',
+    lugar: 'Centro Comunitario La Esperanza',
+    cupo: 15,
+  },
+  {
+    id: 'ACT-003',
+    nombre: 'Tutorías para niños',
+    categoria: 'Educación',
+    descripcion: 'Acompañamiento en lectura, escritura y matemáticas para estudiantes.',
+    fecha: '2027-04-26',
+    hora: '10:00',
+    lugar: 'Biblioteca Municipal',
+    cupo: 12,
+  },
+  {
+    id: 'ACT-004',
+    nombre: 'Jornada de bienestar animal',
+    categoria: 'Animales',
+    descripcion: 'Apoyo en alimentación, limpieza y socialización de animales rescatados.',
+    fecha: '2027-05-03',
+    hora: '08:00',
+    lugar: 'Refugio Huellas',
+    cupo: 18,
+  },
+];
+const LEGACY_ACTIVITIES = [
   {
     id: 'limpieza-parque',
     nombre: 'Jornada de limpieza del parque',
@@ -40,22 +79,43 @@ const ACTIVITIES = [
     cupo: 15,
   },
 ];
-const sessions = new Map();
+const ALL_ACTIVITIES = [...ACTIVITIES, ...LEGACY_ACTIVITIES];
+const COMMUNITY_RECORDS = [
+  {
+    id: 'VOL-2841',
+    nombre: 'María González',
+    actividad: 'Reforestación del Parque Central',
+    descripcion: 'Quiero aportar a la recuperación de las áreas verdes de mi comunidad.',
+    fecha: '2026-04-18',
+    categoria: 'Medio ambiente',
+    estado: 'Confirmada',
+    createdAt: '2026-03-10T10:00:00.000Z',
+  },
+  {
+    id: 'VOL-1975',
+    nombre: 'Carlos Mendoza',
+    actividad: 'Apoyo en comedor comunitario',
+    descripcion: 'Tengo experiencia en cocina y disponibilidad para apoyar durante toda la jornada.',
+    fecha: '2026-04-22',
+    categoria: 'Ayuda social',
+    estado: 'Confirmada',
+    createdAt: '2026-03-09T16:30:00.000Z',
+  },
+  {
+    id: 'VOL-3158',
+    nombre: 'Laura Ramírez',
+    actividad: 'Tutorías para niños',
+    descripcion: 'Puedo brindar apoyo en lectura y matemáticas a estudiantes de primaria.',
+    fecha: '2026-04-26',
+    categoria: 'Educación',
+    estado: 'Confirmada',
+    createdAt: '2026-03-08T14:20:00.000Z',
+  },
+];
 let writeQueue = Promise.resolve();
 
 app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json({ limit: '10kb' }));
-
-async function readUsers() {
-  const contents = await fs.readFile(USERS_FILE, 'utf8');
-  const users = JSON.parse(contents);
-
-  if (!Array.isArray(users)) {
-    throw new Error('El archivo de usuarios debe contener una lista JSON.');
-  }
-
-  return users;
-}
 
 async function writeJsonFile(filePath, contents) {
   const temporaryFile = `${filePath}.${crypto.randomUUID()}.tmp`;
@@ -79,59 +139,10 @@ function updateJsonFile(filePath, update) {
   return operation;
 }
 
-function updateUsers(update) {
-  return updateJsonFile(USERS_FILE, update);
-}
-
 function validateEmail(email) {
   return typeof email === 'string'
-    && email.length <= 254
-    && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function publicUser(user) {
-  return {
-    id: user.id,
-    nombre: user.nombre,
-    email: user.email,
-    createdAt: user.createdAt,
-  };
-}
-
-function authenticate(request, response, next) {
-  const authorization = request.get('authorization') ?? '';
-  const token = authorization.startsWith('Bearer ')
-    ? authorization.slice('Bearer '.length)
-    : '';
-  const session = sessions.get(token);
-
-  if (!session || session.expiresAt <= Date.now()) {
-    if (token) {
-      sessions.delete(token);
-    }
-    return response.status(401).json({
-      message: 'Tu sesión venció. Inicia sesión nuevamente.',
-    });
-  }
-
-  request.userId = session.userId;
-  return next();
-}
-
-async function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hash = await scrypt(password, salt, 64);
-  return `${salt}:${hash.toString('hex')}`;
-}
-
-async function checkPassword(password, storedHash) {
-  const [salt, hash] = storedHash.split(':');
-  if (!salt || !hash || !/^[a-f0-9]{128}$/i.test(hash)) {
-    return false;
-  }
-
-  const submittedHash = await scrypt(password, salt, 64);
-  return crypto.timingSafeEqual(submittedHash, Buffer.from(hash, 'hex'));
+    && email.trim().length <= 254
+    && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
 app.get('/', (request, response) => {
@@ -161,111 +172,32 @@ app.get('/api/actividades', async (request, response) => {
   }
 });
 
-app.post('/api/auth/registro', async (request, response) => {
-  const { nombre, email, contrasena } = request.body ?? {};
+app.get('/api/registros', (request, response) => {
+  return response.status(200).json({ registros: COMMUNITY_RECORDS });
+});
+
+app.post('/api/inscripciones', async (request, response) => {
+  const { actividadId, nombre, email, descripcion, visitorId } = request.body ?? {};
+  const activity = ACTIVITIES.find((item) => item.id === actividadId);
+
+  if (!activity) {
+    return response.status(404).json({ message: 'La actividad seleccionada no existe.' });
+  }
 
   if (
     typeof nombre !== 'string'
     || nombre.trim().length < 2
     || nombre.trim().length > 80
     || !validateEmail(email)
-    || typeof contrasena !== 'string'
-    || contrasena.length < 8
-    || contrasena.length > 128
+    || typeof descripcion !== 'string'
+    || descripcion.trim().length < 20
+    || descripcion.trim().length > 300
+    || typeof visitorId !== 'string'
+    || !VISITOR_ID_PATTERN.test(visitorId)
   ) {
     return response.status(400).json({
-      message: 'Ingresa un nombre, un correo válido y una contraseña de 8 a 128 caracteres.',
+      message: 'Ingresa tu nombre, un correo válido y una motivación de 20 a 300 caracteres.',
     });
-  }
-
-  try {
-    const normalizedEmail = email.trim().toLowerCase();
-    const passwordHash = await hashPassword(contrasena);
-    const user = await updateUsers((users) => {
-      if (users.some((existingUser) => existingUser.email === normalizedEmail)) {
-        return null;
-      }
-
-      const newUser = {
-        id: crypto.randomUUID(),
-        nombre: nombre.trim(),
-        email: normalizedEmail,
-        passwordHash,
-        createdAt: new Date().toISOString(),
-      };
-      users.push(newUser);
-      return newUser;
-    });
-
-    if (!user) {
-      return response.status(409).json({
-        message: 'Ya existe una cuenta con ese correo electrónico.',
-      });
-    }
-
-    return response.status(201).json({
-      message: 'Cuenta creada correctamente.',
-      usuario: publicUser(user),
-    });
-  } catch (error) {
-    console.error('Error al registrar usuario:', error);
-    return response.status(500).json({
-      message: 'No se pudo crear la cuenta. Inténtalo de nuevo más tarde.',
-    });
-  }
-});
-
-app.post('/api/auth/login', async (request, response) => {
-  const { email, contrasena } = request.body ?? {};
-
-  if (
-    !validateEmail(email)
-    || typeof contrasena !== 'string'
-    || contrasena.length === 0
-    || contrasena.length > 128
-  ) {
-    return response.status(400).json({
-      message: 'Ingresa un correo válido y tu contraseña.',
-    });
-  }
-
-  try {
-    const users = await readUsers();
-    const user = users.find(
-      (registeredUser) => registeredUser.email === email.trim().toLowerCase(),
-    );
-
-    if (!user || !(await checkPassword(contrasena, user.passwordHash))) {
-      return response.status(401).json({
-        message: 'El correo o la contraseña son incorrectos.',
-      });
-    }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    sessions.set(token, {
-      userId: user.id,
-      expiresAt: Date.now() + SESSION_DURATION,
-    });
-
-    return response.status(200).json({
-      message: 'Inicio de sesión exitoso.',
-      usuario: publicUser(user),
-      token,
-    });
-  } catch (error) {
-    console.error('Error al iniciar sesión:', error);
-    return response.status(500).json({
-      message: 'No se pudo iniciar sesión. Inténtalo de nuevo más tarde.',
-    });
-  }
-});
-
-app.post('/api/inscripciones', authenticate, async (request, response) => {
-  const { actividadId } = request.body ?? {};
-  const activity = ACTIVITIES.find((item) => item.id === actividadId);
-
-  if (!activity) {
-    return response.status(404).json({ message: 'La actividad seleccionada no existe.' });
   }
 
   if (new Date(`${activity.fecha}T${activity.hora}`) <= new Date()) {
@@ -273,9 +205,11 @@ app.post('/api/inscripciones', authenticate, async (request, response) => {
   }
 
   try {
+    const normalizedEmail = email.trim().toLowerCase();
     const enrollment = await updateJsonFile(ENROLLMENTS_FILE, (enrollments) => {
       if (enrollments.some(
-        (item) => item.actividadId === actividadId && item.usuarioId === request.userId,
+        (item) => item.actividadId === actividadId
+          && (item.visitorId === visitorId || item.email === normalizedEmail),
       )) {
         return { error: 'Ya tienes una inscripción para esta actividad.' };
       }
@@ -290,7 +224,10 @@ app.post('/api/inscripciones', authenticate, async (request, response) => {
       const newEnrollment = {
         id: crypto.randomUUID(),
         actividadId,
-        usuarioId: request.userId,
+        nombre: nombre.trim(),
+        email: normalizedEmail,
+        descripcion: descripcion.trim(),
+        visitorId,
         createdAt: new Date().toISOString(),
       };
       enrollments.push(newEnrollment);
@@ -303,7 +240,11 @@ app.post('/api/inscripciones', authenticate, async (request, response) => {
 
     return response.status(201).json({
       message: 'Tu inscripción se realizó correctamente.',
-      inscripcion: enrollment.enrollment,
+      inscripcion: {
+        id: enrollment.enrollment.id,
+        actividadId: enrollment.enrollment.actividadId,
+        createdAt: enrollment.enrollment.createdAt,
+      },
     });
   } catch (error) {
     console.error('Error al crear inscripción:', error);
@@ -313,14 +254,24 @@ app.post('/api/inscripciones', authenticate, async (request, response) => {
   }
 });
 
-app.get('/api/inscripciones', authenticate, async (request, response) => {
+app.get('/api/inscripciones', async (request, response) => {
+  const visitorId = request.get('X-Visitor-Id');
+  if (typeof visitorId !== 'string' || !VISITOR_ID_PATTERN.test(visitorId)) {
+    return response.status(400).json({ message: 'No se pudo identificar este navegador.' });
+  }
+
   try {
     const enrollments = JSON.parse(await fs.readFile(ENROLLMENTS_FILE, 'utf8'));
     const inscripciones = enrollments
-      .filter((item) => item.usuarioId === request.userId)
+      .filter((item) => item.visitorId === visitorId)
       .map((item) => ({
-        ...item,
-        actividad: ACTIVITIES.find((activity) => activity.id === item.actividadId),
+        id: item.id,
+        actividadId: item.actividadId,
+        nombre: item.nombre,
+        email: item.email,
+        descripcion: item.descripcion ?? '',
+        createdAt: item.createdAt,
+        actividad: ALL_ACTIVITIES.find((activity) => activity.id === item.actividadId),
       }));
 
     return response.status(200).json({ inscripciones });
@@ -332,11 +283,16 @@ app.get('/api/inscripciones', authenticate, async (request, response) => {
   }
 });
 
-app.delete('/api/inscripciones/:id', authenticate, async (request, response) => {
+app.delete('/api/inscripciones/:id', async (request, response) => {
+  const visitorId = request.get('X-Visitor-Id');
+  if (typeof visitorId !== 'string' || !VISITOR_ID_PATTERN.test(visitorId)) {
+    return response.status(400).json({ message: 'No se pudo identificar este navegador.' });
+  }
+
   try {
     const cancelled = await updateJsonFile(ENROLLMENTS_FILE, (enrollments) => {
       const enrollmentIndex = enrollments.findIndex(
-        (item) => item.id === request.params.id && item.usuarioId === request.userId,
+        (item) => item.id === request.params.id && item.visitorId === visitorId,
       );
       if (enrollmentIndex === -1) {
         return false;
@@ -372,12 +328,9 @@ app.use((error, request, response, next) => {
 });
 
 async function startServer() {
-  await fs.mkdir(path.dirname(USERS_FILE), { recursive: true });
+  await fs.mkdir(path.dirname(ENROLLMENTS_FILE), { recursive: true });
 
-  for (const [filePath, initialContents] of [
-    [USERS_FILE, []],
-    [ENROLLMENTS_FILE, []],
-  ]) {
+  for (const [filePath, initialContents] of [[ENROLLMENTS_FILE, []]]) {
     try {
       await fs.access(filePath);
     } catch (error) {

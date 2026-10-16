@@ -1,103 +1,86 @@
-import { Link } from "react-router-dom";
-import "../css/navbar.css";
-function Navbar({ session, onLogout }) {
-    return (
-        <>
-            <svg
-            className="svg-definitions"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-            >
-            <symbol id="icon-heart" viewBox="0 0 24 24">
-            <path
-                d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1
-                a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6
-                a5.5 5.5 0 0 0 0-7.8Z"
-            />
-            </symbol>
-        </svg>
+import { useState } from 'react'
+import { Link, NavLink } from 'react-router-dom'
+import '../css/navbar.css'
 
-        <header className="site-header">
-            <div className="container header-content">
-            <Link className="brand" to="/" aria-label="Sumamos, inicio">
-                <span className="brand-icon">
-                <svg className="icon" aria-hidden="true">
-                    <use href="#icon-heart" />
-                </svg>
-                </span>
+const links = [
+  { to: '/', label: 'Inicio', end: true },
+  { to: '/actividades', label: 'Actividades' },
+  { to: '/registro', label: 'Quiero participar' },
+  { to: '/lista', label: 'Inscripciones' },
+]
 
-                <span className="brand-name">Sumamos</span>
-            </Link>
+function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false)
 
-            <nav className="main-nav" aria-label="Navegación principal">
-                <Link
-                to="/"
-                className="nav-link active"
-                aria-current="page"
-                >
-                Inicio
-                </Link>
+  function navLinkClass({ isActive }) {
+    return `nav-link${isActive ? ' active' : ''}`
+  }
 
-                <Link to="/actividades" className="nav-link">
-                Actividades
-                </Link>
+  function renderLinks(mobile = false) {
+    return links.map(({ to, label, end }) => {
+      const closeMenu = mobile ? () => setMenuOpen(false) : undefined
 
-                <Link to="/actividades" className="nav-link">
-                Quiero participar
-                </Link>
-            </nav>
+      return (
+        <NavLink
+          key={label}
+          to={to}
+          end={end}
+          className={navLinkClass}
+          onClick={closeMenu}
+        >
+          {label}
+        </NavLink>
+      )
+    })
+  }
 
-            <div className="auth-actions">
-                {session ? (
-                    <>
-                        <span className="welcome-user">Hola, {session.usuario.nombre}</span>
-                        <Link to="/inscripciones" className="button button-primary login-button">
-                            Mis inscripciones
-                        </Link>
-                        <button className="button register-button" onClick={onLogout} type="button">
-                            Cerrar sesión
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <Link
-                        to="/login"
-                        className="button button-primary login-button"
-                        >
-                        <svg
-                        className="icon"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        >
-                        <circle cx="12" cy="8" r="3.5" />
-                        <path d="M5 20v-2a7 7 0 0 1 14 0v2" />
-                        </svg>
-                        Iniciar sesión
-                        </Link>
-                        <Link
-                        to="/registro"
-                        className="button register-button"
-                        >
-                        <svg
-                        className="icon"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        >
-                        <circle cx="9" cy="8" r="3.5" />
-                        <path d="M2 20v-2a7 7 0 0 1 14 0v2" />
-                        <path d="M19 8v6M16 11h6" />
-                        </svg>
-                        Registrarse
-                        </Link>
-                    </>
-                )}
-            </div>
-            </div>
-        </header>
-        
-        </>
+  return (
+    <>
+      <svg className="svg-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <symbol id="icon-heart" viewBox="0 0 24 24">
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+        </symbol>
+        <symbol id="icon-menu" viewBox="0 0 24 24">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </symbol>
+      </svg>
 
-    );
+      <header className="site-header">
+        <div className="container header-content">
+          <Link className="brand" to="/" aria-label="Sumamos, inicio">
+            <span className="brand-icon">
+              <svg className="icon" aria-hidden="true">
+                <use href="#icon-heart" />
+              </svg>
+            </span>
+            <span className="brand-name">Sumamos</span>
+          </Link>
+
+          <nav className="main-nav" aria-label="Navegación principal">
+            {renderLinks()}
+          </nav>
+
+          <button
+            className="menu-toggle"
+            type="button"
+            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <svg className="icon" aria-hidden="true">
+              <use href="#icon-menu" />
+            </svg>
+          </button>
+        </div>
+
+        {menuOpen && (
+          <nav className="mobile-nav container" aria-label="Navegación móvil">
+            {renderLinks(true)}
+          </nav>
+        )}
+      </header>
+    </>
+  )
 }
 
-export default Navbar;
+export default Navbar

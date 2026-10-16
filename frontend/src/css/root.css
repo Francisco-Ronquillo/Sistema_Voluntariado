@@ -1,24 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap");
 
 :root {
     
-    --color-primary: #206947;
-    --color-primary-hover: #175236;
-    --color-heading: #173d2c;
-    --color-text: #58665f;
+    --color-primary: #1d6642;
+    --color-primary-hover: #155436;
+    --color-heading: #173a29;
+    --color-text: #50665a;
     --color-muted: #829087;
 
-    --color-background: #fbfcf7;
-    --color-hero: #edf5eb;
+    --color-background: #fbfcf8;
+    --color-hero: #edf4ea;
     --color-badge: #e1efdf;
     --color-white: #ffffff;
-    --color-border: #d1dcd0;
+    --color-border: #dfe7df;
 
-    --color-card-text: #c8dbcc;
-    --color-card-heading: #fffbed;
+    --color-card-text: rgb(255 255 255 / 70%);
+    --color-card-heading: #ffffff;
 
     
-    --font-body: Arial, Helvetica, sans-serif;
-    --font-heading: Georgia, "Times New Roman", serif;
+    --font-body: "Manrope", sans-serif;
+    --font-heading: "DM Serif Display", Georgia, "Times New Roman", serif;
 
     --text-small: 0.875rem;
     --text-base: 1rem;
@@ -44,8 +45,8 @@
     --radius-card: 38px;
     --radius-card-corner: 125px;
 
-    --shadow-button: 0 5px 12px rgb(32 105 71 / 12%);
-    --shadow-card: 0 25px 50px rgb(35 76 45 / 15%);
+    --shadow-button: 0 4px 12px rgb(29 102 66 / 14%);
+    --shadow-card: 0 28px 60px rgb(44 82 58 / 15%);
 
     --transition: 180ms ease;
 }
@@ -65,6 +66,7 @@ body {
     color: var(--color-text);
     font-family: var(--font-body);
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -167,6 +169,7 @@ h3 {
 
 .button-primary:hover {
     background: var(--color-primary-hover);
+    transform: translateY(-1px);
 }
 
 .button-outline {

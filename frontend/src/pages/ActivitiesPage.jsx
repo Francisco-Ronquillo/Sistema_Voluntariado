@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import '../css/activities.css'
 
-function formatDate(date, time) {
-  return new Date(`${date}T${time}`).toLocaleString('es-MX', {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  })
+function formatDate(date) {
+  return new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(`${date}T12:00:00`))
 }
 
-function ActivitiesPage({ session, onLogout }) {
-  const navigate = useNavigate()
+const categoryClasses = {
+  'Medio ambiente': 'category-environment',
+  'Ayuda social': 'category-social',
+  Educación: 'category-education',
+  Animales: 'category-animals',
+}
+
+function ActivitiesPage() {
   const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
-  const [submittingId, setSubmittingId] = useState('')
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
 
   useEffect(() => {
     let active = true
@@ -49,62 +54,15 @@ function ActivitiesPage({ session, onLogout }) {
     }
   }, [])
 
-  async function handleEnroll(actividadId) {
-    if (!session) {
-      navigate('/login', {
-        state: {
-          from: '/actividades',
-          message: 'Inicia sesión para inscribirte a una actividad.',
-        },
-      })
-      return
-    }
-
-    setSubmittingId(actividadId)
-    setError('')
-    setMessage('')
-    try {
-      const response = await fetch('/api/inscripciones', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.token}`,
-        },
-        body: JSON.stringify({ actividadId }),
-      })
-      const result = await response.json()
-      if (!response.ok) {
-        if (response.status === 401) {
-          onLogout()
-          navigate('/login', {
-            replace: true,
-            state: { from: '/actividades', message: result.message },
-          })
-          return
-        }
-        throw new Error(result.message || 'No se pudo completar la inscripción.')
-      }
-
-      navigate('/inscripciones', { state: { message: result.message } })
-    } catch (requestError) {
-      setError(requestError instanceof TypeError
-        ? 'No se pudo conectar con el servidor. Inténtalo de nuevo.'
-        : requestError.message)
-    } finally {
-      setSubmittingId('')
-    }
-  }
-
   return (
     <main className="activities-page">
       <section className="container activities-section" aria-labelledby="activities-title">
-        <span className="badge">Encuentra tu manera de ayudar</span>
-        <h1 id="activities-title">Actividades disponibles</h1>
+        <span className="badge">Oportunidades disponibles</span>
+        <h1 id="activities-title">Elige dónde quieres sumar</h1>
         <p className="activities-intro">
-          Elige una causa que te inspire y reserva tu lugar para participar.
+          Consulta las próximas jornadas, sus fechas y cupos antes de inscribirte.
         </p>
 
-        {message && <p className="page-message success-message" role="status">{message}</p>}
         {error && <p className="page-message error-message" role="alert">{error}</p>}
         {loading && <p className="page-message" role="status">Cargando actividades...</p>}
 
@@ -117,46 +75,64 @@ function ActivitiesPage({ session, onLogout }) {
             {activities.map((activity) => (
               <article className="activity-card" key={activity.id}>
                 <div className="activity-card-content">
-                  <span className="activity-label">Voluntariado</span>
+                  <div className="activity-card-meta">
+                    <span className={`activity-label ${categoryClasses[activity.categoria] ?? ''}`}>
+                      {activity.categoria}
+                    </span>
+                    <span className="activity-capacity">
+                      {activity.disponibles === 0
+                        ? 'Cupo completo'
+                        : `${activity.disponibles} cupos`}
+                    </span>
+                  </div>
                   <h2>{activity.nombre}</h2>
                   <p className="activity-description">{activity.descripcion}</p>
                   <dl className="activity-details">
                     <div>
-                      <dt>Fecha y hora</dt>
-                      <dd>{formatDate(activity.fecha, activity.hora)}</dd>
+                      <dt>Fecha</dt>
+                      <dd className="activity-detail-icon">
+                        <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M6 3v3m12-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z" />
+                        </svg>
+                        {formatDate(activity.fecha)}
+                      </dd>
                     </div>
                     <div>
                       <dt>Lugar</dt>
-                      <dd>{activity.lugar}</dd>
-                    </div>
-                    <div>
-                      <dt>Cupos disponibles</dt>
-                      <dd>{activity.disponibles} de {activity.cupo}</dd>
+                      <dd className="activity-detail-icon">
+                        <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                          <circle cx="12" cy="10" r="2.5" />
+                        </svg>
+                        {activity.lugar}
+                      </dd>
                     </div>
                   </dl>
                 </div>
-                <button
-                  className="button button-primary activity-button"
-                  disabled={activity.disponibles === 0 || submittingId === activity.id}
-                  onClick={() => handleEnroll(activity.id)}
-                  type="button"
+                <Link
+                  className={`button button-primary activity-button${activity.disponibles === 0 ? ' button-disabled' : ''}`}
+                  aria-disabled={activity.disponibles === 0}
+                  onClick={(event) => {
+                    if (activity.disponibles === 0) event.preventDefault()
+                  }}
+                  to={`/registro?actividad=${encodeURIComponent(activity.id)}`}
                 >
-                  {submittingId === activity.id
-                    ? 'Inscribiendo...'
-                    : activity.disponibles === 0
-                      ? 'Cupo completo'
-                      : 'Inscribirme'}
-                </button>
+                  {activity.disponibles === 0 ? (
+                    'Cupo completo'
+                  ) : (
+                    <>
+                      Reservar mi cupo
+                      <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M5 12h14m-5-5 5 5-5 5" />
+                      </svg>
+                    </>
+                  )}
+                </Link>
               </article>
             ))}
           </div>
         )}
 
-        {session && (
-          <p className="activities-link">
-            <Link to="/inscripciones">Consulta tus inscripciones</Link>
-          </p>
-        )}
       </section>
     </main>
   )

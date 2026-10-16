@@ -59,7 +59,7 @@ function Home() {
                 </Link>
 
                 <Link
-                  to="/inscripciones"
+                  to="/lista"
                   className="button button-outline"
                 >
                   Ver inscripciones
@@ -78,8 +78,8 @@ function Home() {
               <h2 id="card-title">Cada acción cuenta</h2>
 
               <p>
-                Elige una actividad, crea tu cuenta y reserva tu cupo en pocos
-                minutos.
+                Elige una actividad y reserva tu cupo en pocos minutos, sin
+                necesidad de crear una cuenta.
               </p>
             </aside>
           </div>
@@ -98,10 +98,13 @@ function Home() {
             </h2>
             <p className="steps-description">
               Explora las actividades disponibles, reserva tu cupo y consulta
-              tus inscripciones cuando quieras.
+              las historias de quienes ya están sumando.
             </p>
             <Link className="button button-primary" to="/actividades">
               Ver actividades disponibles
+            </Link>
+            <Link className="button button-outline community-button" to="/lista">
+              Conocer a la comunidad
             </Link>
           </div>
         </section>

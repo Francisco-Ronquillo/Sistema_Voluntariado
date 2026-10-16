@@ -29,10 +29,9 @@ function Footer() {
         </div>
 
         <nav className="footer-nav" aria-label="Enlaces del pie de página">
-          <Link to="/actividades">Participar</Link>
+          <Link to="/registro">Participar</Link>
           <Link to="/actividades">Actividades</Link>
-          <Link to="/inscripciones">Inscripciones</Link>
-          <a href="mailto:contacto@ejemplo.com">Contacto</a>
+          <Link to="/lista">Inscripciones</Link>
         </nav>
 
         <small className="copyright">

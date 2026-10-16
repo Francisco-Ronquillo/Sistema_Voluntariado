@@ -4,7 +4,7 @@
 
 .hero {
     background: var(--color-hero);
-    padding-block: 124px 86px;
+    padding-block: 64px;
 }
 
 .hero-grid {
@@ -12,6 +12,7 @@
     grid-template-columns: 1fr 1fr;
     align-items: center;
     gap: 48px;
+    min-height: 472px;
 }
 
 .hero-content {
@@ -72,13 +73,12 @@
 ========================= */
 
 .feature-card {
-    min-height: 260px;
+    min-height: 300px;
     padding: 40px;
 
     background: var(--color-primary);
 
-    border-radius:
-        var(--radius-card) var(--radius-card) var(--radius-card-corner) var(--radius-card);
+    border-radius: 36px 36px 120px 36px;
 
     box-shadow: var(--shadow-card);
 }
@@ -111,7 +111,7 @@
 ========================= */
 
 .steps-section {
-    padding-block: 80px;
+    padding-block: 80px 88px;
     text-align: center;
     background: var(--color-background);
 }
@@ -135,7 +135,7 @@
 
 @media (max-width: 1024px) {
     .hero {
-        padding-block: 85px;
+        padding-block: 64px;
     }
 
     .hero-grid {
@@ -167,6 +167,7 @@
     .hero-grid {
         grid-template-columns: 1fr;
         gap: 42px;
+        min-height: 0;
     }
 
     .hero h1 {
