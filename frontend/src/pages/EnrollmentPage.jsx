@@ -188,6 +188,9 @@ function EnrollmentPage() {
               <Link className="button button-primary" to="/actividades">
                 Ver más actividades
               </Link>
+              <Link className="button button-outline" to="/lista">
+                Ver mis inscripciones
+              </Link>
             </div>
           ) : (
           <div className="registration-card">

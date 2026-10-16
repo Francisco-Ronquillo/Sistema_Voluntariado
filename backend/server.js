@@ -216,9 +216,10 @@ app.post('/api/inscripciones', async (request, response) => {
     const enrollmentResult = await updateJsonFile(ENROLLMENTS_FILE, (enrollments) => {
       if (enrollments.some(
         (item) => item.actividadId === actividadId
-          && (item.visitorId === visitorId || item.email === normalizedEmail),
+          && typeof item.email === 'string'
+          && item.email.trim().toLowerCase() === normalizedEmail,
       )) {
-        return { error: 'Ya tienes una inscripción para esta actividad.' };
+        return { error: 'Este correo ya tiene una inscripción para esta actividad.' };
       }
 
       if (new Date(`${activity.fecha}T${activity.hora}`) <= new Date()) {

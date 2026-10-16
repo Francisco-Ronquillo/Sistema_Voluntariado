@@ -3,6 +3,15 @@
 Aplicación web compuesta por un frontend desarrollado con React y Vite, y un
 backend desarrollado con Node.js y Express.
 
+## Documentación de entrega
+
+- [PDF del componente práctico](./Componente_Practico_Web_Sistema_Voluntariado.pdf)
+- [Fuente HTML del documento](./docs/Componente_Practico_Web_Sistema_Voluntariado.html)
+
+El PDF incluye capturas del proyecto y deja señalado el espacio para la captura
+del registro compartido de temas, pendiente de recibir. También indica que se
+deben confirmar los permisos públicos del enlace de video antes de entregar.
+
 ## Requisitos
 
 Antes de ejecutar el proyecto, instala:
@@ -132,18 +141,23 @@ el origen permitido en `backend/server.js`.
 El frontend no requiere inicio de sesión ni registro. En `/registro`, cada
 voluntario proporciona su nombre, correo, actividad y motivación. Se crea un
 identificador anónimo aleatorio en el navegador para consultar y cancelar las
-inscripciones desde ese mismo navegador; si se borran los datos del navegador,
-se pierde el acceso a esas inscripciones.
+inscripciones desde ese mismo navegador; la sección `/lista` muestra esas
+inscripciones junto con los registros de ejemplo. Si se borran los datos del
+navegador, se pierde el acceso a las inscripciones asociadas a ese identificador.
 
 ## Actividades e inscripciones
 
 En `/actividades` se muestran las cuatro actividades de ejemplo, sus categorías,
 fechas, lugares y cupos. Cualquier visitante puede reservar un cupo sin crear
 una cuenta. El formulario `/registro` permite elegir la actividad y añadir una
-motivación. En `/lista` se muestran y se pueden buscar los tres registros de
-ejemplo de la comunidad; las inscripciones reales permanecen privadas. Al
-confirmar una reserva, el formulario muestra el resultado y permite volver a
-las actividades. El backend guarda las inscripciones en
+motivación. En `/lista` se muestran las inscripciones propias del navegador
+actual y los tres registros de ejemplo de la comunidad. Las inscripciones
+reales permanecen privadas: el frontend envía el identificador anónimo en la
+cabecera `X-Visitor-Id` y el backend devuelve únicamente las asociadas a ese
+identificador. Se permite registrar a varias personas desde el mismo navegador,
+pero cada correo solo puede reservar una vez la misma actividad. Al confirmar
+una reserva, el formulario permite ir directamente a consultar las
+inscripciones. El backend guarda las inscripciones en
 `backend/data/inscripciones.json`, creado automáticamente al iniciar el servidor.
 
 | Método | Ruta | Descripción |
@@ -158,6 +172,22 @@ Las cuatro actividades y los registros de demostración están definidos en
 `backend/server.js`. Los cupos se validan en el servidor para evitar
 sobreinscripciones y registros duplicados. Las consultas y cancelaciones
 envían el identificador anónimo en la cabecera `X-Visitor-Id`.
+
+## Validaciones realizadas
+
+- `npm.cmd --prefix frontend run lint`: ESLint terminó sin errores.
+- `npm.cmd --prefix frontend run build`: Vite generó correctamente la
+  compilación de producción en `frontend/dist`.
+- Comprobación manual del backend: `GET /` respondió `API de Voluntariado`;
+  `GET /api/actividades` devolvió cuatro actividades y `GET /api/registros`
+  devolvió tres registros de ejemplo.
+- Comprobación manual del frontend y del proxy: la página principal respondió
+  correctamente y `GET /api/actividades` a través del proxy de Vite devolvió
+  las cuatro actividades.
+
+El backend no tiene una suite de pruebas automatizadas configurada todavía.
+El script `npm test` es solo el marcador predeterminado de npm y no debe
+interpretarse como una prueba ejecutada o aprobada.
 
 ## Comandos disponibles
 

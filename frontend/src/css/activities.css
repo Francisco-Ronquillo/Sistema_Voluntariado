@@ -547,6 +547,16 @@
   line-height: 1.6;
 }
 
+.community-subsection {
+  margin-top: 40px;
+}
+
+.community-subsection > h2 {
+  color: #163828;
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  letter-spacing: -0.025em;
+}
+
 .community-search {
   display: flex;
   width: min(100%, 520px);

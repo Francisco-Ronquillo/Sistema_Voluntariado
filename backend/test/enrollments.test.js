@@ -120,6 +120,21 @@ test('rechaza actividad inexistente y evita una inscripción duplicada', async (
   assert.match(duplicate.body.message, /inscripción/i);
 });
 
+test('permite inscribir a otra persona desde el mismo navegador con otro correo', async () => {
+  const first = await postEnrollment(validEnrollment());
+  assert.equal(first.response.status, 201);
+
+  const second = await postEnrollment(validEnrollment({
+    nombre: 'Beatriz',
+    email: 'beatriz@example.com',
+  }));
+  assert.equal(second.response.status, 201);
+
+  const stored = JSON.parse(await fs.readFile(enrollmentsFile, 'utf8'));
+  assert.equal(stored.length, 2);
+  assert.equal(stored[0].visitorId, stored[1].visitorId);
+});
+
 test('confirma los cupos al enviar, aunque la lista se haya cargado antes', async () => {
   const activitiesResponse = await fetch(`${baseUrl}/api/actividades`);
   const activities = await activitiesResponse.json();
