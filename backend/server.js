@@ -6,7 +6,8 @@ const express = require('express');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3001);
-const ENROLLMENTS_FILE = path.join(__dirname, 'data', 'inscripciones.json');
+const ENROLLMENTS_FILE = process.env.ENROLLMENTS_FILE
+  || path.join(__dirname, 'data', 'inscripciones.json');
 const VISITOR_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ACTIVITIES = [
   {
@@ -184,29 +185,35 @@ app.post('/api/inscripciones', async (request, response) => {
     return response.status(404).json({ message: 'La actividad seleccionada no existe.' });
   }
 
-  if (
-    typeof nombre !== 'string'
-    || nombre.trim().length < 2
-    || nombre.trim().length > 80
-    || !validateEmail(email)
-    || typeof descripcion !== 'string'
-    || descripcion.trim().length < 20
-    || descripcion.trim().length > 300
-    || typeof visitorId !== 'string'
-    || !VISITOR_ID_PATTERN.test(visitorId)
-  ) {
+  if (typeof nombre !== 'string' || nombre.trim().length < 2 || nombre.trim().length > 80) {
     return response.status(400).json({
-      message: 'Ingresa tu nombre, un correo válido y una motivación de 20 a 300 caracteres.',
+      message: 'El nombre debe tener entre 2 y 80 caracteres, sin contar espacios al inicio o al final.',
     });
   }
 
-  if (new Date(`${activity.fecha}T${activity.hora}`) <= new Date()) {
-    return response.status(400).json({ message: 'Esta actividad ya se realizó.' });
+  if (!validateEmail(email)) {
+    return response.status(400).json({ message: 'Ingresa un correo electrónico válido.' });
+  }
+
+  if (
+    typeof descripcion !== 'string'
+    || descripcion.trim().length < 20
+    || descripcion.trim().length > 300
+  ) {
+    return response.status(400).json({
+      message: 'La motivación debe tener entre 20 y 300 caracteres, sin contar espacios al inicio o al final.',
+    });
+  }
+
+  if (typeof visitorId !== 'string' || !VISITOR_ID_PATTERN.test(visitorId)) {
+    return response.status(400).json({
+      message: 'No se pudo identificar este navegador. Recarga la página e inténtalo de nuevo.',
+    });
   }
 
   try {
     const normalizedEmail = email.trim().toLowerCase();
-    const enrollment = await updateJsonFile(ENROLLMENTS_FILE, (enrollments) => {
+    const enrollmentResult = await updateJsonFile(ENROLLMENTS_FILE, (enrollments) => {
       if (enrollments.some(
         (item) => item.actividadId === actividadId
           && (item.visitorId === visitorId || item.email === normalizedEmail),
@@ -214,11 +221,18 @@ app.post('/api/inscripciones', async (request, response) => {
         return { error: 'Ya tienes una inscripción para esta actividad.' };
       }
 
+      if (new Date(`${activity.fecha}T${activity.hora}`) <= new Date()) {
+        return { error: 'Esta actividad ya se realizó o ya no acepta reservas.', status: 410 };
+      }
+
       const enrolledCount = enrollments.filter(
         (item) => item.actividadId === actividadId,
       ).length;
       if (enrolledCount >= activity.cupo) {
-        return { error: 'Ya no quedan cupos disponibles para esta actividad.' };
+        return {
+          error: 'Ya no quedan cupos disponibles para esta actividad. Elige otra actividad.',
+          status: 409,
+        };
       }
 
       const newEnrollment = {
@@ -234,16 +248,18 @@ app.post('/api/inscripciones', async (request, response) => {
       return { enrollment: newEnrollment };
     });
 
-    if (enrollment.error) {
-      return response.status(409).json({ message: enrollment.error });
+    if (enrollmentResult.error) {
+      return response.status(enrollmentResult.status || 409).json({
+        message: enrollmentResult.error,
+      });
     }
 
     return response.status(201).json({
       message: 'Tu inscripción se realizó correctamente.',
       inscripcion: {
-        id: enrollment.enrollment.id,
-        actividadId: enrollment.enrollment.actividadId,
-        createdAt: enrollment.enrollment.createdAt,
+        id: enrollmentResult.enrollment.id,
+        actividadId: enrollmentResult.enrollment.actividadId,
+        createdAt: enrollmentResult.enrollment.createdAt,
       },
     });
   } catch (error) {
@@ -346,7 +362,11 @@ async function startServer() {
   });
 }
 
-startServer().catch((error) => {
-  console.error('No se pudo iniciar el servidor:', error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error('No se pudo iniciar el servidor:', error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { app };

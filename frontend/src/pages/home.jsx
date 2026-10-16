@@ -90,22 +90,42 @@ function Home() {
           id="participar"
           aria-labelledby="steps-title"
         >
-          <div className="container" id="actividades">
+          <div className="container steps-container" id="actividades">
             <span className="badge">Así de sencillo</span>
-
-            <h2 id="steps-title">
-              Elige, inscríbete y empieza a sumar
-            </h2>
+            <h2 id="steps-title">Elige, inscríbete y empieza a sumar</h2>
             <p className="steps-description">
-              Explora las actividades disponibles, reserva tu cupo y consulta
-              las historias de quienes ya están sumando.
+              Tu próxima oportunidad para ayudar está a solo unos pasos.
             </p>
-            <Link className="button button-primary" to="/actividades">
-              Ver actividades disponibles
-            </Link>
-            <Link className="button button-outline community-button" to="/lista">
-              Conocer a la comunidad
-            </Link>
+
+            <div className="steps-grid">
+              <article className="step-card">
+                <span className="step-number" aria-hidden="true">01</span>
+                <h3>Encuentra tu causa</h3>
+                <p>Explora actividades y elige la que mejor conecte contigo.</p>
+              </article>
+              <article className="step-card">
+                <span className="step-number" aria-hidden="true">02</span>
+                <h3>Reserva tu cupo</h3>
+                <p>Completa tus datos y cuéntanos por qué quieres participar.</p>
+              </article>
+              <article className="step-card">
+                <span className="step-number" aria-hidden="true">03</span>
+                <h3>Suma a la comunidad</h3>
+                <p>Prepárate para compartir tu tiempo y generar un impacto.</p>
+              </article>
+            </div>
+
+            <div className="steps-actions">
+              <Link className="button button-primary" to="/actividades">
+                Ver actividades disponibles
+                <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h14m-5-5 5 5-5 5" />
+                </svg>
+              </Link>
+              <Link className="button button-outline community-button" to="/lista">
+                Conocer a la comunidad
+              </Link>
+            </div>
           </div>
         </section>
       </main>
