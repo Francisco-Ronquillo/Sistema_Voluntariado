@@ -1,0 +1,132 @@
+INSTRUCCIONES PARA EJECUTAR EL FRONTEND Y EL BACKEND
+Y RESUMEN DE PRUEBAS REALIZADAS
+
+Proyecto: Sistema de Voluntariado
+Sistema operativo de referencia: Windows y PowerShell
+
+REQUISITOS
+
+- Node.js instalado (se recomienda la versión LTS).
+- npm, incluido con Node.js.
+- Dependencias instaladas para backend y frontend.
+
+Para comprobar que Node.js y npm están disponibles, ejecuta:
+
+    node --version
+    npm.cmd --version
+
+INSTALAR DEPENDENCIAS
+
+Abre PowerShell en la carpeta raíz del proyecto. Instala por separado las
+dependencias del backend y del frontend:
+
+    npm.cmd --prefix backend install
+    npm.cmd --prefix frontend install
+
+No es necesario repetir la instalación cada vez que se ejecuta la aplicación.
+
+EJECUTAR EL BACKEND
+
+1. Abre una terminal de PowerShell.
+2. Ve a la carpeta backend:
+
+       Set-Location backend
+
+3. Inicia el servidor de desarrollo:
+
+       npm.cmd run dev
+
+El backend estará disponible normalmente en:
+
+    http://localhost:3001
+
+Déjalo ejecutándose en esta terminal. Para detenerlo, presiona Ctrl+C.
+
+EJECUTAR EL FRONTEND
+
+1. Abre una segunda terminal de PowerShell; no cierres la terminal del backend.
+2. Desde la carpeta raíz del proyecto, ve a la carpeta frontend:
+
+       Set-Location frontend
+
+3. Inicia el servidor de desarrollo:
+
+       npm.cmd run dev
+
+Vite mostrará la dirección local. Normalmente es:
+
+    http://localhost:5173
+
+Abre esa dirección en el navegador. Para detener el frontend, presiona Ctrl+C
+en su terminal.
+
+COMUNICACION ENTRE FRONTEND Y BACKEND
+
+El frontend usa rutas que comienzan por /api. El proxy de Vite, configurado en
+frontend/vite.config.js, reenvía esas solicitudes al backend en
+http://localhost:3001.
+
+Por ejemplo, el formulario consulta GET /api/actividades para cargar las
+actividades y envía POST /api/inscripciones para reservar un cupo. Para que
+estas funciones trabajen, ambos servidores deben permanecer iniciados.
+
+COMPROBAR EL BACKEND
+
+Con el backend ejecutándose, se puede comprobar su respuesta desde el
+navegador abriendo:
+
+    http://localhost:3001
+
+La respuesta esperada es:
+
+    API de Voluntariado
+
+PRUEBAS REALIZADAS
+
+Backend: pruebas automatizadas de inscripciones
+
+Comando ejecutado desde la raíz del proyecto:
+
+    npm.cmd --prefix backend test
+
+Resultado obtenido: 4 pruebas aprobadas, 0 fallidas.
+
+Las pruebas cubren:
+
+- Aceptar los límites mínimos y máximos de nombre y motivación, después de
+  quitar los espacios al inicio y al final.
+- Rechazar nombre vacío o demasiado largo, motivación fuera de los límites y
+  correo inválido, mostrando mensajes relacionados con el dato incorrecto.
+- Rechazar una actividad inexistente y evitar una inscripción duplicada.
+- Volver a comprobar los cupos en el backend y rechazar la reserva cuando la
+  actividad se llenó después de cargar la lista.
+
+Frontend: revisión de estilo
+
+Comando ejecutado desde la raíz:
+
+    npm.cmd --prefix frontend run lint
+
+Resultado obtenido: ESLint terminó sin errores.
+
+Frontend: compilación de producción
+
+Comando ejecutado desde la raíz:
+
+    npm.cmd --prefix frontend run build
+
+Resultado obtenido: Vite generó correctamente la compilación de producción en
+frontend/dist.
+
+Revisión del cambio:
+
+    git diff --check
+
+Resultado obtenido: sin errores de espacios en blanco ni formato del diff.
+
+NOTA PARA POWERSHELL
+
+En algunos equipos, ejecutar "npm" directamente puede fallar porque la
+política de ejecución de PowerShell bloquea npm.ps1. En ese caso, utiliza
+"npm.cmd" como aparece en los comandos de este documento. Esto evita tener
+que cambiar la política de seguridad del equipo.
